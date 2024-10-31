@@ -27,7 +27,7 @@ public class TeleOps extends OpMode {
     DcMotor leftM;
     DcMotor rightM;
     
-    public double shoulderOpen = 0.45;
+    public double shoulderOpen = 0.5;
     public double shoulderClose = 0.2;
     
     public double wristNormal=0.5;
@@ -56,10 +56,10 @@ public class TeleOps extends OpMode {
         wrist.setPosition(wristNormal);
         claw.setPosition(clawOpen);
         
-        rightArm.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-        leftArm.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-        rightM.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-        leftM.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        //rightArm.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        //leftArm.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        //rightM.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        //leftM.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         rightM.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
         leftM.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
         rightArm.setTargetPosition(0);
@@ -81,9 +81,9 @@ public class TeleOps extends OpMode {
     public double startTime2=0;
     public boolean open=true;
     public boolean open2=true;
-    public int arm=0;
+    public int arm=100;
     public int armChange=20;
-    public int armMax=2400;
+    public int armMax=2200;
     
     @Override
     public void loop() {
@@ -104,7 +104,7 @@ public class TeleOps extends OpMode {
         rightM.setPower(up);
         
         if (gamepad1.dpad_up){
-            arm=2000;
+            arm=2150;
             leftArm.setTargetPosition(arm);
             rightArm.setTargetPosition(arm);
             leftArm.setVelocity(2000);
@@ -124,12 +124,12 @@ public class TeleOps extends OpMode {
             leftArm.setVelocity(2000);
             rightArm.setVelocity(2000);
         }
-        else if (gamepad1.left_bumper&&arm>0){
+        else if (gamepad1.left_bumper&&arm>100){
             arm-=armChange;
             leftArm.setTargetPosition(arm);
             rightArm.setTargetPosition(arm);
-            leftArm.setVelocity(500);
-            rightArm.setVelocity(500);
+            leftArm.setVelocity(750);
+            rightArm.setVelocity(750);
         }
         
         if (gamepad1.y&&(System.currentTimeMillis()-startTime)>=300){
