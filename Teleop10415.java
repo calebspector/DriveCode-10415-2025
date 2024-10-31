@@ -1,6 +1,7 @@
 package com.qualcomm.ftcrobotcontroller.opmodes;
 
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
+import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import org.firstinspires.ftc.robotcore.external.Telemetry;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
@@ -16,19 +17,17 @@ public class Teleop10415 extends OpMode {
     DcMotor bl;
     DcMotor br;
     
-    DcMotor leftArm;
-    DcMotor rightArm;
+    DcMotorEx leftArm;
+    DcMotorEx rightArm;
     
     Servo shoulder;
     Servo wrist;
     Servo claw;
-    Servo[] right;
-    Servo[] left;
     
     DcMotor leftM;
     DcMotor rightM;
     
-    public double shoulderOpen = 0.45;
+    public double shoulderOpen = 0.5;
     public double shoulderClose = 0.2;
     
     public double wristNormal=0.5;
@@ -50,19 +49,31 @@ public class Teleop10415 extends OpMode {
         leftM=hardwareMap.dcMotor.get("leftM");
         rightM=hardwareMap.dcMotor.get("rightM");
         
-        leftArm=hardwareMap.dcMotor.get("leftArm");
-        rightArm=hardwareMap.dcMotor.get("rightArm");
+        leftArm=hardwareMap.get(DcMotorEx.class,"leftArm");
+        rightArm=hardwareMap.get(DcMotorEx.class,"rightArm");
         
-        shoulder.setPosition(0);
+        shoulder.setPosition(shoulderOpen);
         wrist.setPosition(wristNormal);
         claw.setPosition(clawOpen);
         
+        //rightArm.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        //leftArm.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         //rightM.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         //leftM.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        rightM.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+        leftM.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+        rightArm.setTargetPosition(0);
+        leftArm.setTargetPosition(0);
+        rightArm.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+        leftArm.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+        rightArm.setPower(1);
+        leftArm.setPower(1);
         leftM.setDirection(DcMotorSimple.Direction.REVERSE);
         rightArm.setDirection(DcMotorSimple.Direction.REVERSE);
         fr.setDirection(DcMotorSimple.Direction.REVERSE);
         br.setDirection(DcMotorSimple.Direction.REVERSE);
+        
+        
     }
     
     public double speed = 0.85;
@@ -70,6 +81,9 @@ public class Teleop10415 extends OpMode {
     public double startTime2=0;
     public boolean open=true;
     public boolean open2=true;
+    public int arm=100;
+    public int armChange=30;
+    public int armMax=2200;
     
     @Override
     public void loop() {
@@ -78,29 +92,49 @@ public class Teleop10415 extends OpMode {
         double x2 = 0.7*gamepad1.right_stick_x;
         
         double up = (gamepad2.right_trigger-gamepad2.left_trigger)+0.05;
-        double up2 = gamepad1.right_trigger-gamepad1.left_trigger;
         
-        if (true){//set condition with motor encoders for slides
-            double thing =0;
-            up2+=thing*(1-gamepad1.left_trigger);
-        }
-        
-        if (gamepad2.right_bumper){
-            up2=0.5;
-        }
-        else if (gamepad2.left_bumper){
-            up2=-0.4;
+        if (up>0&&leftArm.getCurrentPosition()<1900){
+            if (leftM.getCurrentPosition()>2000)
+                up=0;
+            if (leftM.getCurrentPosition()>2100)
+                up=-1;
         }
         
         leftM.setPower(up);
         rightM.setPower(up);
         
-        leftArm.setPower(up2);
-        rightArm.setPower(up2);
+        if (gamepad2.dpad_up){
+            arm=2150;
+            leftArm.setTargetPosition(arm);
+            rightArm.setTargetPosition(arm);
+            leftArm.setVelocity(2000);
+            rightArm.setVelocity(2000);
+        }
+        else if (gamepad2.dpad_down){
+            arm=150;
+            leftArm.setTargetPosition(arm);
+            rightArm.setTargetPosition(arm);
+            leftArm.setVelocity(500);
+            rightArm.setVelocity(500);
+        }
+        else if (gamepad2.right_bumper&&arm<armMax){
+            arm+=armChange;
+            leftArm.setTargetPosition(arm);
+            rightArm.setTargetPosition(arm);
+            leftArm.setVelocity(2000);
+            rightArm.setVelocity(2000);
+        }
+        else if (gamepad2.left_bumper&&arm>100){
+            arm-=armChange;
+            leftArm.setTargetPosition(arm);
+            rightArm.setTargetPosition(arm);
+            leftArm.setVelocity(500);
+            rightArm.setVelocity(500);
+        }
         
         if (gamepad2.y&&(System.currentTimeMillis()-startTime)>=300){
             startTime=System.currentTimeMillis();
-            if (open){
+            if (!open){
                 shoulder.setPosition(shoulderOpen);
             }
             else{
@@ -120,6 +154,7 @@ public class Teleop10415 extends OpMode {
             }
             else{
                 claw.setPosition(clawOpen);
+                wrist.setPosition(0.5);
             }
             open2=!open2;
         }
@@ -144,6 +179,10 @@ public class Teleop10415 extends OpMode {
         rightArm.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         
         telemetry.addData("Speed", Math.round(speed*100));
+        telemetry.addData("LeftArm",leftArm.getCurrentPosition());
+        telemetry.addData("RightArm",rightArm.getCurrentPosition());
+        telemetry.addData("LeftSlide",leftM.getCurrentPosition());
+        telemetry.addData("RightSlide",rightM.getCurrentPosition());
         telemetry.update();
     }
 }
